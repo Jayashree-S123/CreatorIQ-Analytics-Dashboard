@@ -1,122 +1,122 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
-function App() {
-  const [count, setCount] = useState(0)
+function AdminDashboard({ onLogout }) {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/admin/stats")
+      .then((response) => response.json())
+      .then((data) => setStats(data))
+      .catch((error) => console.error(error));
+  }, []);
+
+  if (!stats) {
+    return <p>Loading admin statistics...</p>;
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
+    <div className="dashboard">
+
+      <aside className="sidebar">
+        <h2>CreatorIQ</h2>
+
+        <nav>
+          <p className="active">📊 Dashboard</p>
+          <p>👥 Creators</p>
+          <p>📈 Analytics</p>
+          <p>⚙️ Settings</p>
+        </nav>
+
         <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          className="logout-button"
+          onClick={onLogout}
         >
-          Count is {count}
+          Logout
         </button>
-      </section>
+      </aside>
 
-      <div className="ticks"></div>
+      <main className="main-content">
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <header className="dashboard-header">
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p>Welcome, Admin!</p>
+          </div>
+
+          <div className="profile">
+            👤 Admin
+          </div>
+        </header>
+
+        <div className="analytics-grid">
+
+          <div className="analytics-card">
+            <p>Total Creators</p>
+            <h2>{stats.total_creators}</h2>
+          </div>
+
+          <div className="analytics-card">
+            <p>Total Followers</p>
+            <h2>{stats.total_followers.toLocaleString()}</h2>
+          </div>
+
+          <div className="analytics-card">
+            <p>Average Engagement</p>
+            <h2>{stats.average_engagement}%</h2>
+          </div>
+
+          <div className="analytics-card">
+            <p>Database Status</p>
+            <h2>Connected</h2>
+          </div>
+
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      </main>
+
+    </div>
+  );
 }
 
-export default App
+function App() {
+
+  const [userRole, setUserRole] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  const handleLogin = (role, id) => {
+    setUserRole(role);
+    setUserId(id);
+  };
+
+  const handleLogout = () => {
+    setUserRole(null);
+    setUserId(null);
+  };
+
+  if (!userRole) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  if (userRole === "creator") {
+    return (
+      <Dashboard
+        userId={userId}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  if (userRole === "admin") {
+    return (
+      <AdminDashboard
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  return null;
+}
+
+export default App;
